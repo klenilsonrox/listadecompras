@@ -21,6 +21,7 @@ const Page = () => {
 
   function openModalAdd(){
     setModal(true)
+
   }
 
   function addProduto(e) {
