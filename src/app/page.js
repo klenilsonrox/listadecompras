@@ -110,7 +110,7 @@ const Page = () => {
         <header className='max-w-3xl w-full mx-auto py-2 text-white flex items-center justify-between px-2'>
           <div>
             <h1>Mercado</h1>
-            <p>Total: R$ {total}</p>
+            {lista.length > 0 && <p>Total: R$ {total}</p>}
           </div>
           <button className='flex items-center gap-3 bg-white py-2 px-6 rounded-md text-[#9734F7] font-medium' onClick={openModalAdd}>
             <TiPlus className='text-2xl' />Adicionar
