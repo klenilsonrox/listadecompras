@@ -1,113 +1,163 @@
-import Image from "next/image";
+'use client'
+import React, { useEffect, useState } from 'react';
+import { TiPlus } from "react-icons/ti";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
-export default function Home() {
+const Page = () => {
+  const [modal, setModal] = useState(false);
+  const [modalDelete, setModalDelete] = useState(false);
+  const [id, setId] = useState("");
+  const [lista, setLista] = useState([]);
+  const [produto, setProduto] = useState("");
+  const [preco, setPreco] = useState("");
+  const [quantidade, setQuantidade] = useState("");
+  const [total, setTotal] = useState("");
+  const [editIndex, setEditIndex] = useState(null);
+
+  function closeModal(e) {
+    if (e.target.id === "modal") setModal(false);
+  }
+
+  function addProduto(e) {
+    e.preventDefault();
+
+    const precoNumber = parseFloat(preco.replace(",", "."));
+
+    const produtoAdd = {
+      produto,
+      preco: precoNumber,
+      quantidade
+    };
+
+    if (editIndex !== null) {
+      const novaLista = [...lista];
+      novaLista[editIndex] = produtoAdd;
+      setLista(novaLista);
+      setEditIndex(null);
+      localStorage.setItem("lista", JSON.stringify(novaLista));
+    } else {
+      const novaLista = [...lista, produtoAdd];
+      setLista(novaLista);
+      localStorage.setItem("lista", JSON.stringify(novaLista));
+    }
+
+    setModal(false);
+    resetForm();
+  }
+
+  function openModalDelete(index) {
+    setId(index);
+    setModalDelete(true);
+  }
+
+  function voltar() {
+    setProduto("");
+    setPreco("");
+    setQuantidade("");
+    setModal(false);
+    setModalDelete(false);
+  }
+
+  function deleteItem(index) {
+    const novaLista = [...lista];
+    novaLista.splice(index, 1);
+    setLista(novaLista);
+    localStorage.setItem("lista", JSON.stringify(novaLista));
+    setModalDelete(false);
+    setId("");
+  }
+
+  function editItem(index) {
+    setEditIndex(index);
+    const item = lista[index];
+    setProduto(item.produto);
+    setPreco(item.preco.toString());
+    setQuantidade(item.quantidade.toString());
+    setModal(true);
+  }
+
+  function resetForm() {
+    setProduto("");
+    setPreco("");
+    setQuantidade("");
+  }
+
+  useEffect(() => {
+    const dadosExistem = localStorage.getItem("lista");
+    if (dadosExistem) {
+      const dadosJson = JSON.parse(dadosExistem);
+      setLista(dadosJson);
+    }
+  }, []);
+
+  useEffect(() => {
+    const totalItens = lista.reduce((acc, item) => acc + (item.preco * item.quantidade), 0);
+    setTotal(totalItens.toFixed(2));
+  }, [lista]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div>
+      <div className='bg-[#9734F7]'>
+        <header className='max-w-3xl w-full mx-auto py-2 text-white flex items-center justify-between px-2'>
+          <div>
+            <h1>Mercado</h1>
+            <p>Total: R$ {total}</p>
+          </div>
+          <button className='flex items-center gap-3 bg-white py-2 px-6 rounded-md text-[#9734F7] font-medium' onClick={() => setModal(true)}>
+            <TiPlus className='text-2xl' />Adicionar
+          </button>
+        </header>
+      </div>
+      <div className='bg-[#282A2D] h-screen pt-2 relative'>
+        {lista && lista.map((item, index) => (
+          <div className="bg-gray-100 text-center w-full mx-auto max-w-3xl relative flex items-center justify-between px-2" key={index}>
+            <p className="py-2">({item.quantidade}x) - {item.produto}</p>
+            <p className="py-2">R$ {item.preco.toFixed(2)}</p>
+            <div className='flex gap-2'>
+              <FaEdit className='text-xl' onClick={() => editItem(index)} />
+              <FaTrash className='text-xl' onClick={() => openModalDelete(index)} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {modal &&
+        <div className='w-full inset-0 fixed bg-black backdrop-blur-sm bg-opacity-20' id='modal' onClick={closeModal}>
+          <form className='mx-auto max-w-lg w-full mt-4 bg-white p-4 rounded-md animar'>
+            <div className='flex flex-col'>
+              <label htmlFor="produto" className='font-medium'>Produto</label>
+              <input type="text" className='bg-gray-200 py-2 rounded-md mt-1 outline-none text-gray-700 pl-4' value={produto} onChange={({ target }) => setProduto(target.value)} />
+            </div>
+            <div className='flex flex-col mt-4'>
+              <label htmlFor="quantidade" className='font-medium'>Quantidade</label>
+              <input type="number" className='bg-gray-200 py-2 rounded-md mt-1 outline-none text-gray-700 pl-4' value={quantidade} onChange={({ target }) => setQuantidade(target.value)} />
+            </div>
+            <div className='flex flex-col mt-4'>
+              <label htmlFor="quantidade" className='font-medium'>Preço</label>
+              <input type="text" className='bg-gray-200 py-2 rounded-md mt-1 outline-none text-gray-700 pl-4' value={preco} onChange={({ target }) => setPreco(target.value)} />
+            </div>
+            <div className='flex items-center justify-between mt-4'>
+              <button className='flex items-center gap-3 text-white py-2 px-6 rounded-md bg-[#9734F7] font-medium' onClick={addProduto}>{editIndex !== null ? "Salvar" : "Adicionar"}</button>
+              <button onClick={voltar}>← Voltar</button>
+            </div>
+          </form>
         </div>
-      </div>
+      }
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+      {modalDelete &&
+        <div className='w-full inset-0 fixed bg-black backdrop-blur-sm bg-opacity-20 flex items-center justify-center'>
+          <div className='bg-white rounded-md p-2 flex flex-col gap-2 animar'>
+          <p>Tem certeza que deseja deletar o  <strong>{lista[id].produto}</strong>?</p>
+            <div className='flex justify-between'>
+              <button className='bg-red-600 px-6 py-2 rounded-md text-white uppercase' onClick={() => deleteItem(id)}>Deletar</button>
+              <button onClick={voltar}>← Voltar</button>
+            </div>
+          </div>
+        </div>
+      }
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
-}
+};
+
+export default Page;
