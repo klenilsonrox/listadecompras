@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { TiPlus } from "react-icons/ti";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
@@ -14,8 +14,13 @@ const Page = () => {
   const [total, setTotal] = useState("");
   const [editIndex, setEditIndex] = useState(null);
 
+
   function closeModal(e) {
     if (e.target.id === "modal") setModal(false);
+  }
+
+  function openModalAdd(){
+    setModal(true)
   }
 
   function addProduto(e) {
@@ -43,6 +48,9 @@ const Page = () => {
 
     setModal(false);
     resetForm();
+    setProduto("");
+    setPreco("");
+    setQuantidade("");
   }
 
   function openModalDelete(index) {
@@ -103,12 +111,15 @@ const Page = () => {
             <h1>Mercado</h1>
             <p>Total: R$ {total}</p>
           </div>
-          <button className='flex items-center gap-3 bg-white py-2 px-6 rounded-md text-[#9734F7] font-medium' onClick={() => setModal(true)}>
+          <button className='flex items-center gap-3 bg-white py-2 px-6 rounded-md text-[#9734F7] font-medium' onClick={openModalAdd}>
             <TiPlus className='text-2xl' />Adicionar
           </button>
         </header>
       </div>
       <div className='bg-[#282A2D] h-screen pt-2 relative'>
+        <div>
+          {lista.length < 1 && <h1 className='text-center text-xl mt-10 text-white'>Sem itens na Lista :( </h1> }
+        </div>
         {lista && lista.map((item, index) => (
           <div className="bg-gray-100 text-center w-full mx-auto max-w-3xl relative flex items-center justify-between px-2" key={index}>
             <p className="py-2">({item.quantidade}x) - {item.produto}</p>
